@@ -36,23 +36,30 @@ def main(opts):
             else:
                 app_name = POD_DELIMITER.join(parts[:-1])
 
-            command = CMD_DELETE_POD.format(api=api,
-                                            namespace=namespace,
-                                            app_name=app_name)
+            command = CMD_DELETE_POD.format(
+                api=api, namespace=namespace, app_name=app_name
+            )
             output1 = hp.run_cmd(command)
             print(output1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     description = ["This program cleans up all deployed systems on a given node."]
     description.append("It does not clean up the OSPL daemon.")
-    parser = argparse.ArgumentParser(description=" ".join(description),
-                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(
+        description=" ".join(description),
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
 
     parser.add_argument("node_name", help="Name of the node to clean.")
 
-    parser.add_argument("-d", "--clean-daemons", dest="clean_daemons", action="store_true",
-                        help="Clean up the OSPL daemons.")
+    parser.add_argument(
+        "-d",
+        "--clean-daemons",
+        dest="clean_daemons",
+        action="store_true",
+        help="Clean up the OSPL daemons.",
+    )
 
     args = parser.parse_args()
     main(args)

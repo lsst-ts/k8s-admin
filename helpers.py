@@ -11,10 +11,12 @@ API_MAPPING = {
     "auxtel": "job",
     "maintel": "job",
     "kafka-producers": "deployment",
-    "ospl-daemon": "daemonset"
+    "ospl-daemon": "daemonset",
 }
 
-GET_PODS_CMD = "kubectl get pod -o=custom-columns=NODE:.spec.nodeName,NAME:.metadata.name"
+GET_PODS_CMD = (
+    "kubectl get pod -o=custom-columns=NODE:.spec.nodeName,NAME:.metadata.name"
+)
 
 
 def run_cmd(command, as_lines=False):
@@ -33,7 +35,7 @@ def run_cmd(command, as_lines=False):
         The output from the command.
     """
     output = sp.run(command.split(), stdout=sp.PIPE, stderr=sp.STDOUT)
-    decoded_output = output.stdout.decode('utf-8')
+    decoded_output = output.stdout.decode("utf-8")
     if as_lines:
         return decoded_output.split(os.linesep)
     else:

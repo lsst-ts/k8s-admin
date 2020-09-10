@@ -30,12 +30,14 @@ def main(opts):
         print(f"{values[0]} daemon ID is {system_id} ({int(system_id):x})")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     description = ["This program lists the SystemIds (numeric and hex) for the "]
     description.append("ospl-daemons.")
 
-    parser = argparse.ArgumentParser(description=" ".join(description),
-                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(
+        description=" ".join(description),
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
 
     args = parser.parse_args()
 
