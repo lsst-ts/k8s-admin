@@ -37,4 +37,4 @@ def run_cmd(command, as_lines=False):
     if as_lines:
         return decoded_output.split(os.linesep)
     else:
-        return decoded_output
+        return decoded_output[:-1]
