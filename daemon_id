@@ -1,0 +1,42 @@
+#!/usr/bin/env python3
+
+import argparse
+
+import helpers as hp
+
+
+CMD = hp.GET_PODS_CMD + " -n ospl-daemon"
+
+CMD2 = "kubectl logs -n ospl-daemon {pod}"
+
+
+def main(opts):
+    output = hp.run_cmd(CMD, as_lines=True)
+    for line in output:
+        if line == "":
+            continue
+        values = line.strip().split()
+        if values[0] == "NODE":
+            continue
+        command = CMD2.format(pod=values[1])
+        output1 = hp.run_cmd(command, as_lines=True)
+        stop_read = False
+        for line in output1:
+            if "SystemId" in line:
+                system_id = line.split()[2]
+                stop_read = True
+            if stop_read:
+                break
+        print(f"{values[0]} daemon ID is {system_id} ({int(system_id):x})")
+
+
+if __name__ == '__main__':
+    description = ["This program lists the SystemIds (numeric and hex) for the "]
+    description.append("ospl-daemons.")
+
+    parser = argparse.ArgumentParser(description=" ".join(description),
+                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+
+    args = parser.parse_args()
+
+    main(args)

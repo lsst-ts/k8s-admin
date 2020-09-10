@@ -1,0 +1,58 @@
+#!/usr/bin/env python3
+
+import argparse
+
+import helpers as hp
+
+CMD_DELETE_POD = "kubectl delete {api} -n {namespace} {app_name}"
+POD_DELIMITER = "-"
+
+
+def main(opts):
+    namespaces = hp.STANDARD_NAMESPACES
+    if not opts.clean_daemons:
+        del namespaces[namespaces.index("ospl-daemon")]
+
+    for namespace in namespaces:
+        command = hp.GET_PODS_CMD + f" -n {namespace}"
+        output = hp.run_cmd(command, as_lines=True)
+        for line in output:
+            if line == "":
+                continue
+            values = line.strip().split()
+            if values[0] == "NODE":
+                continue
+            if opts.node_name not in values[0]:
+                continue
+            parts = values[1].split(POD_DELIMITER)
+            api = hp.API_MAPPING[namespace]
+            if namespace == "kafka-producers":
+                app_name = POD_DELIMITER.join(parts[:3])
+            elif namespace == "ospl-daemon":
+                app_name = POD_DELIMITER.join(parts)
+                # For the daemons we want the pod not the daemonset
+                # since we are only deleting the one on the node.
+                api = "pod"
+            else:
+                app_name = POD_DELIMITER.join(parts[:-1])
+
+            command = CMD_DELETE_POD.format(api=api,
+                                            namespace=namespace,
+                                            app_name=app_name)
+            output1 = hp.run_cmd(command)
+            print(output1)
+
+
+if __name__ == '__main__':
+    description = ["This program cleans up all deployed systems on a given node."]
+    description.append("It does not clean up the OSPL daemon.")
+    parser = argparse.ArgumentParser(description=" ".join(description),
+                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+
+    parser.add_argument("node_name", help="Name of the node to clean.")
+
+    parser.add_argument("-d", "--clean-daemons", dest="clean_daemons", action="store_true",
+                        help="Clean up the OSPL daemons.")
+
+    args = parser.parse_args()
+    main(args)
