@@ -1,7 +1,13 @@
 import os
 import subprocess as sp
 
-__all__ = ["API_MAPPING", "GET_PODS_CMD", "run_cmd", "STANDARD_NAMESPACES"]
+__all__ = [
+    "API_MAPPING",
+    "GET_PODS_CMD",
+    "GET_PODS_NAME_CMD",
+    "run_cmd",
+    "STANDARD_NAMESPACES",
+]
 
 
 STANDARD_NAMESPACES = ["auxtel", "maintel", "obssys", "kafka-producers", "ospl-daemon"]
@@ -17,6 +23,8 @@ API_MAPPING = {
 GET_PODS_CMD = (
     "kubectl get pod -o=custom-columns=NODE:.spec.nodeName,NAME:.metadata.name"
 )
+
+GET_PODS_NAME_CMD = "kubectl get pod -o=custom-columns=NAME:.metadata.name"
 
 
 def run_cmd(command, as_lines=False):
