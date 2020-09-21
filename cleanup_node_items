@@ -45,7 +45,7 @@ def main(opts):
 
 if __name__ == "__main__":
     description = ["This program cleans up all deployed systems on a given node."]
-    description.append("It does not clean up the OSPL daemon.")
+    description.append("It does not clean up the OSPL daemon by default.")
     parser = argparse.ArgumentParser(
         description=" ".join(description),
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
