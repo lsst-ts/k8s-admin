@@ -1,22 +1,39 @@
 #!/usr/bin/env python3
 
 import argparse
+import os
 
 import helpers as hp
 
 
 def main(opts):
-    command = hp.GET_PODS_CMD + " --all-namespaces"
-    output = hp.run_cmd(command)
-    print(output)
+    if opts.control_system:
+        namespaces = hp.STANDARD_NAMESPACES
+        output = []
+        for i, namespace in enumerate(namespaces):
+            command = hp.GET_PODS_CMD + f" -n {namespace}"
+            lines = hp.run_cmd(command, as_lines=True)
+            if i == 0:
+                output.extend(lines[:-1])
+            else:
+                output.extend(lines[1:-1])
+        print(os.linesep.join(output))
+    else:
+        command = hp.GET_PODS_CMD + " --all-namespaces"
+        output = hp.run_cmd(command)
+        print(output)
 
 
 if __name__ == "__main__":
-    description = ["This program lists all pods on Kuberneted."]
+    description = ["This program lists all pods on Kubernetes."]
     parser = argparse.ArgumentParser(
         description=" ".join(description),
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
+
+    parser.add_argument("-c", "--control-system", dest="control_system",
+                        action="store_true",
+                        help="Show only the pods for the control system.")
 
     args = parser.parse_args()
     main(args)
