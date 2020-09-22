@@ -31,9 +31,13 @@ if __name__ == "__main__":
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
 
-    parser.add_argument("-c", "--control-system", dest="control_system",
-                        action="store_true",
-                        help="Show only the pods for the control system.")
+    parser.add_argument(
+        "-c",
+        "--control-system",
+        dest="control_system",
+        action="store_true",
+        help="Show only the pods for the control system.",
+    )
 
     args = parser.parse_args()
     main(args)

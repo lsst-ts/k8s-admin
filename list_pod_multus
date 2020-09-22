@@ -21,7 +21,7 @@ def main(opts):
             output1 = hp.run_cmd(
                 DESCRIBE_CMD.format(namespace=namespace, pod=line), as_lines=True
             )
-            multus_ip = output1[MULTUS_IP_INDEX].strip().strip("\"")
+            multus_ip = output1[MULTUS_IP_INDEX].strip().strip('"')
             print(f"{line} multus IP is {multus_ip}")
 
 
