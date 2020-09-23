@@ -11,10 +11,12 @@ def main(opts):
     print(output)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     description = ["This program lists all of the OSPL daemons."]
-    parser = argparse.ArgumentParser(description=" ".join(description),
-                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(
+        description=" ".join(description),
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
 
     args = parser.parse_args()
     main(args)

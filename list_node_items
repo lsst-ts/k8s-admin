@@ -23,13 +23,15 @@ def main(opts):
             print(values[1])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     description = ["This program lists all pods in the standard deployment"]
     description.append("on a given node except for the OSPL daemons.")
-    parser = argparse.ArgumentParser(description=" ".join(description),
-                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(
+        description=" ".join(description),
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
 
-    parser.add_argument("node_name", help="Name of the node to clean.")
+    parser.add_argument("node_name", help="Name of the node to list pods.")
 
     args = parser.parse_args()
     main(args)

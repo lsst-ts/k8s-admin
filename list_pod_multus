@@ -1,0 +1,37 @@
+#!/usr/bin/env python3
+
+import argparse
+
+import helpers as hp
+
+DESCRIBE_CMD = "kubectl describe pod -n {namespace} {pod}"
+MULTUS_IP_INDEX = 23
+
+
+def main(opts):
+    for namespace in hp.STANDARD_NAMESPACES:
+        command = hp.GET_PODS_NAME_CMD + f" -n {namespace}"
+        output = hp.run_cmd(command, as_lines=True)
+        for line in output:
+            if line == "":
+                continue
+            line = line.strip()
+            if line == "NAME":
+                continue
+            output1 = hp.run_cmd(
+                DESCRIBE_CMD.format(namespace=namespace, pod=line), as_lines=True
+            )
+            multus_ip = output1[MULTUS_IP_INDEX].strip().strip('"')
+            print(f"{line} multus IP is {multus_ip}")
+
+
+if __name__ == "__main__":
+    description = ["This program lists the multus address on all pods in the"]
+    description.append("standard deployment.")
+    parser = argparse.ArgumentParser(
+        description=" ".join(description),
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+
+    args = parser.parse_args()
+    main(args)
