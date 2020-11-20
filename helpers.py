@@ -10,10 +10,11 @@ __all__ = [
 ]
 
 
-STANDARD_NAMESPACES = ["auxtel", "maintel", "obssys", "kafka-producers", "ospl-daemon"]
+STANDARD_NAMESPACES = ["auxtel", "eas", "maintel", "obssys", "kafka-producers", "ospl-daemon"]
 
 API_MAPPING = {
     "obssys": "job",
+    "eas": "job",
     "auxtel": "job",
     "maintel": "job",
     "kafka-producers": "deployment",
