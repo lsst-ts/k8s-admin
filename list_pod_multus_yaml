@@ -1,0 +1,52 @@
+#!/usr/bin/env python3
+
+import argparse
+import os
+
+import yaml
+
+import helpers as hp
+
+DESCRIBE_CMD = "kubectl get pods -n {namespace} {pod} -oyaml"
+
+
+def main(opts):
+    for namespace in hp.STANDARD_NAMESPACES:
+        command = hp.GET_PODS_NAME_CMD + f" -n {namespace}"
+        output = hp.run_cmd(command, as_lines=True)
+        for line in output:
+            if line == "":
+                continue
+            line = line.strip()
+            if line == "NAME":
+                continue
+            output1 = hp.run_cmd(
+                DESCRIBE_CMD.format(namespace=namespace, pod=line), as_lines=True
+            )
+            yaml_output = yaml.safe_load(os.linesep.join(output1))
+            annotations = yaml_output["metadata"]["annotations"]
+            networks = annotations["k8s.v1.cni.cncf.io/networks-status"]
+            print(type(networks))
+            networks = networks.split()
+            #print(networks)
+            index = networks.index('"macvlan-conf",')
+            multus_ip = networks[index + 5].strip('"')
+            print(f"{line} multus IP is {multus_ip}")
+            # print(index)
+            for network in networks:
+                #print(network)
+                if network["name"] == "macvlan-conf":
+                    multus_ip = network["ips"][0]
+                    print(f"{line} multus IP is {multus_ip}")
+
+
+if __name__ == "__main__":
+    description = ["This program lists the multus address on all pods in the"]
+    description.append("standard deployment. Uses YAML output from kubectl.")
+    parser = argparse.ArgumentParser(
+        description=" ".join(description),
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+
+    args = parser.parse_args()
+    main(args)
