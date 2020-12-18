@@ -5,7 +5,6 @@ import argparse
 import helpers as hp
 
 DESCRIBE_CMD = "kubectl describe pod -n {namespace} {pod}"
-MULTUS_IP_INDEX = 23
 
 
 def main(opts):
@@ -21,7 +20,7 @@ def main(opts):
             output1 = hp.run_cmd(
                 DESCRIBE_CMD.format(namespace=namespace, pod=line), as_lines=True
             )
-            multus_ip = output1[MULTUS_IP_INDEX].strip().strip('"')
+            multus_ip = output1[opts.index].strip().strip('"')
             print(f"{line} multus IP is {multus_ip}")
 
 
@@ -32,6 +31,9 @@ if __name__ == "__main__":
         description=" ".join(description),
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
+
+    parser.add_argument("-i", "--index", default=23, type=int,
+                        help="Provide the index for the offest to the multus information.")
 
     args = parser.parse_args()
     main(args)
