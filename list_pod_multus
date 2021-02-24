@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 
 import argparse
+import os
+
+import yaml
 
 import helpers as hp
 
-DESCRIBE_CMD = "kubectl describe pod -n {namespace} {pod}"
+DESCRIBE_CMD = "kubectl get pods -n {namespace} {pod} -oyaml"
 
 
 def main(opts):
@@ -20,20 +23,27 @@ def main(opts):
             output1 = hp.run_cmd(
                 DESCRIBE_CMD.format(namespace=namespace, pod=line), as_lines=True
             )
-            multus_ip = output1[opts.index].strip().strip('"')
-            print(f"{line} multus IP is {multus_ip}")
+            yaml_output = yaml.safe_load(os.linesep.join(output1))
+            annotations = yaml_output["metadata"]["annotations"]
+            networks = annotations["k8s.v1.cni.cncf.io/networks-status"]
+            # print(type(networks))
+            networks = networks.split()
+            # print(networks)
+            try:
+                index = networks.index('"macvlan-conf",')
+                multus_ip = networks[index + 5].strip('"')
+                print(f"{line} multus IP is {multus_ip}")
+            except ValueError:
+                print(f"{line} has no multus IP")
 
 
 if __name__ == "__main__":
     description = ["This program lists the multus address on all pods in the"]
-    description.append("standard deployment.")
+    description.append("standard deployment. Uses YAML output from kubectl.")
     parser = argparse.ArgumentParser(
         description=" ".join(description),
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-
-    parser.add_argument("-i", "--index", default=23, type=int,
-                        help="Provide the index for the offest to the multus information.")
 
     args = parser.parse_args()
     main(args)
