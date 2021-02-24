@@ -26,18 +26,15 @@ def main(opts):
             yaml_output = yaml.safe_load(os.linesep.join(output1))
             annotations = yaml_output["metadata"]["annotations"]
             networks = annotations["k8s.v1.cni.cncf.io/networks-status"]
-            print(type(networks))
+            # print(type(networks))
             networks = networks.split()
-            #print(networks)
-            index = networks.index('"macvlan-conf",')
-            multus_ip = networks[index + 5].strip('"')
-            print(f"{line} multus IP is {multus_ip}")
-            # print(index)
-            for network in networks:
-                #print(network)
-                if network["name"] == "macvlan-conf":
-                    multus_ip = network["ips"][0]
-                    print(f"{line} multus IP is {multus_ip}")
+            # print(networks)
+            try:
+                index = networks.index('"macvlan-conf",')
+                multus_ip = networks[index + 5].strip('"')
+                print(f"{line} multus IP is {multus_ip}")
+            except ValueError:
+                print(f"{line} has no multus IP")
 
 
 if __name__ == "__main__":
