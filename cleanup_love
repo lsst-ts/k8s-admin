@@ -1,0 +1,39 @@
+#!/usr/bin/env python3
+
+import argparse
+
+import helpers as hp
+
+APIS = ["deployment", "job"]
+CMD_DELETE_ALL = "kubectl delete {api} -n love --all"
+
+def main(opts):
+
+    if opts.svc or opts.all:
+        APIS.append("svc")
+
+    if opts.pvc or opts.all:
+        APIS.append("pvc")
+
+    for api in APIS:
+        command = CMD_DELETE_ALL.format(api=api)
+        output = hp.run_cmd(command)
+        print(output)
+
+
+if __name__ == '__main__':
+    description = ["This program cleans up LOVE deployments and jobs."]
+    description.append("Services and PersistentVolumeClaims can optionally be cleaned.")
+    parser = argparse.ArgumentParser(
+        description=" ".join(description),
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+
+    extras = parser.add_argument_group("extras")
+    extras.add_argument("--svc", action="store_true", help="Delete all services")
+    extras.add_argument("--pvc", action="store_true", help="Delete all persistent volume claims")
+
+    parser.add_argument("--all", action="store_true", help="Delete all APIs")
+
+    args = parser.parse_args()
+    main(args)
