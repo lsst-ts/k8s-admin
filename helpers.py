@@ -24,6 +24,7 @@ API_MAPPING = {
     "eas": "job",
     "auxtel": "job",
     "maintel": "job",
+    "uws": "job",
     "kafka-producers": "deployment",
     "ospl-daemon": "daemonset",
 }
