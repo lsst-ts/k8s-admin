@@ -14,6 +14,7 @@ STANDARD_NAMESPACES = [
     "auxtel",
     "eas",
     "maintel",
+    "uws",
     "obssys",
     "kafka-producers",
     "ospl-daemon",
