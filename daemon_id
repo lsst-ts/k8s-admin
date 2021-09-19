@@ -11,6 +11,7 @@ CMD2 = "kubectl logs -n ospl-daemon {pod}"
 
 
 def main(opts):
+    main_daemon = None
     output = hp.run_cmd(CMD, as_lines=True)
     for line in output:
         if line == "":
@@ -28,9 +29,14 @@ def main(opts):
             if stop_read:
                 break
         if stop_read:
-            print(f"{values[0]} daemon ID is {system_id} ({int(system_id):x})")
+            if "main-daemon" not in values[1]:
+                print(f"{values[0]} daemon ID is {system_id} ({int(system_id):x})")
+            else:
+                main_daemon = f"{values[0]} daemon ID is {system_id} ({int(system_id):x})"
         else:
             print(f"Problem with {values[0]}")
+    if main_daemon is not None:
+        print(f"main daemon: {main_daemon}")
 
 if __name__ == "__main__":
     description = ["This program lists the SystemIds (numeric and hex) for the "]
