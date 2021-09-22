@@ -52,7 +52,11 @@ def run_cmd(command, as_lines=False):
     str or list
         The output from the command.
     """
-    output = sp.run(command.split(), stdout=sp.PIPE, stderr=sp.STDOUT)
+    try:
+        cmd = command.split()
+    except AttributeError:
+        cmd = command
+    output = sp.run(cmd, stdout=sp.PIPE, stderr=sp.STDOUT)
     decoded_output = output.stdout.decode("utf-8")
     if as_lines:
         return decoded_output.split(os.linesep)

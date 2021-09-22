@@ -17,7 +17,9 @@ def main(opts):
             api=hp.API_MAPPING[namespace], namespace=namespace
         )
         if namespace == "uws":
-            command += "-l csc=ocps"
+            command = command.split()
+            command.append("-l")
+            command.append("csc in (atocps, ccocps)")
         else:
             command += "--all"
         if opts.no_run:
