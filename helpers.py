@@ -16,12 +16,14 @@ STANDARD_NAMESPACES = [
     "maintel",
     "uws",
     "obssys",
+    "dds-test",
     "kafka-producers",
     "ospl-daemon",
 ]
 
 API_MAPPING = {
     "obssys": "job",
+    "dds-test": "job",
     "eas": "job",
     "auxtel": "job",
     "maintel": "job",
