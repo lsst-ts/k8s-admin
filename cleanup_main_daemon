@@ -1,0 +1,23 @@
+#!/usr/bin/env python3
+
+import argparse
+
+import helpers as hp
+
+CMD_DELETE = "kubectl delete deployment -n ospl-daemon --all"
+
+def main(opts):
+
+    output = hp.run_cmd(CMD_DELETE)
+    print(output)
+
+
+if __name__ == '__main__':
+    description = ["This program cleans up the main OSPL daemon deployment."]
+    parser = argparse.ArgumentParser(
+        description=" ".join(description),
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+
+    args = parser.parse_args()
+    main(args)
