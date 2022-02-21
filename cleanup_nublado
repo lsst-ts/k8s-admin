@@ -13,7 +13,7 @@ def main(opts):
 
 
 if __name__ == '__main__':
-    description = ["This program cleans up Nublado pads."]
+    description = ["This program cleans up Nublado pods."]
     parser = argparse.ArgumentParser(
         description=" ".join(description),
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
