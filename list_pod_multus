@@ -11,6 +11,11 @@ DESCRIBE_CMD = "kubectl get pods -n {namespace} {pod} -oyaml"
 
 
 def main(opts):
+    if opts.tucson:
+        multus_name = "kube-system/misc-dds"
+    else:
+        multus_name = "macvlan-conf"
+
     for namespace in hp.STANDARD_NAMESPACES:
         command = hp.GET_PODS_NAME_CMD + f" -n {namespace}"
         output = hp.run_cmd(command, as_lines=True)
@@ -30,7 +35,7 @@ def main(opts):
             networks = networks.split()
             # print(networks)
             try:
-                index = networks.index('"macvlan-conf",')
+                index = networks.index(f'"{multus_name}",')
                 multus_ip = networks[index + 5].strip('"')
                 print(f"{line} multus IP is {multus_ip}")
             except ValueError:
@@ -44,6 +49,7 @@ if __name__ == "__main__":
         description=" ".join(description),
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
+    parser.add_argument("-t", "--tucson", action="store_true", help="Use TTS information.")
 
     args = parser.parse_args()
     main(args)

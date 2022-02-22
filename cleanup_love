@@ -8,6 +8,8 @@ APIS = ["deployment", "job"]
 CMD_DELETE_ALL = "kubectl delete {api} -n love --all"
 
 def main(opts):
+    if opts.db or opts.all:
+        APIS.append("statefulset")
 
     if opts.svc or opts.all:
         APIS.append("svc")
@@ -32,6 +34,7 @@ if __name__ == '__main__':
     extras = parser.add_argument_group("extras")
     extras.add_argument("--svc", action="store_true", help="Delete all services")
     extras.add_argument("--pvc", action="store_true", help="Delete all persistent volume claims")
+    extras.add_argument("--db", action="store_true", help="Delete the database")
 
     parser.add_argument("--all", action="store_true", help="Delete all APIs")
 
