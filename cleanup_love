@@ -4,7 +4,7 @@ import argparse
 
 import helpers as hp
 
-APIS = ["deployment", "job"]
+APIS = ["deployment", "job", "hpa"]
 CMD_DELETE_ALL = "kubectl delete {api} -n love --all"
 
 def main(opts):
