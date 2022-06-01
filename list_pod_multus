@@ -14,9 +14,20 @@ def main(opts):
     if opts.tucson:
         multus_name = "kube-system/misc-dds"
     else:
-        multus_name = "macvlan-conf"
+        multus_name = "kube-system/macvlan-conf"
 
-    for namespace in hp.STANDARD_NAMESPACES:
+    namespaces = ["auxtel", "ospl-daemon"]
+    updates = hp.run_cmd("kubectl get ns -A -l argocd.argoproj.io/instance=nublado-users",
+                         as_lines=True)
+    for line in updates:
+        if line == "":
+            continue
+        line = line.strip()
+        if line.startswith("NAME"):
+            continue
+        namespaces.append(line.split()[0].strip())
+
+    for namespace in namespaces:
         command = hp.GET_PODS_NAME_CMD + f" -n {namespace}"
         output = hp.run_cmd(command, as_lines=True)
         for line in output:
@@ -30,15 +41,18 @@ def main(opts):
             )
             yaml_output = yaml.safe_load(os.linesep.join(output1))
             annotations = yaml_output["metadata"]["annotations"]
-            networks = annotations["k8s.v1.cni.cncf.io/networks-status"]
+            # print(annotations)
+            networks = yaml.safe_load(annotations["k8s.v1.cni.cncf.io/networks-status"])
             # print(type(networks))
-            networks = networks.split()
             # print(networks)
-            try:
-                index = networks.index(f'"{multus_name}",')
-                multus_ip = networks[index + 5].strip('"')
-                print(f"{line} multus IP is {multus_ip}")
-            except ValueError:
+            has_multus = False
+            for network in networks:
+                # print(network)
+                if network["name"] == multus_name:
+                    multus_ip = network["ips"][0]
+                    print(f"{line} multus IP is {multus_ip}")
+                    has_multus = True
+            if not has_multus:
                 print(f"{line} has no multus IP")
 
 
