@@ -7,7 +7,11 @@ import helpers as hp
 
 def main(opts):
     namespaces = hp.STANDARD_NAMESPACES
-    del namespaces[namespaces.index("ospl-daemon")]
+    if not opts.all:
+        del namespaces[namespaces.index("ospl-daemon")]
+    if opts.all:
+        namespaces.append("rubintv-broadcasters")
+        namespaces.append("schedview")
 
     for namespace in namespaces:
         command = hp.GET_PODS_CMD + f" -n {namespace}"
@@ -20,6 +24,8 @@ def main(opts):
                 continue
             if opts.node_name not in values[0]:
                 continue
+            if values[1].startswith("uws-job"):
+                continue
             print(values[1])
 
 
@@ -30,6 +36,8 @@ if __name__ == "__main__":
         description=" ".join(description),
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
+
+    parser.add_argument("-a", "--all", action="store_true", help="Include all apps and services.")
 
     parser.add_argument("node_name", help="Name of the node to list pods.")
 
