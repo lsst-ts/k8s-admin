@@ -7,7 +7,7 @@ import helpers as hp
 CMD_DELETE_ALL = "kubectl delete ns -l argocd.argoproj.io/instance=nublado-users"
 
 def main(opts):
-
+    hp.acknowledge_deletion()
     output = hp.run_cmd(CMD_DELETE_ALL)
     print(output)
 
