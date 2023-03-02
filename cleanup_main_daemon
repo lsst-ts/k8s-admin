@@ -7,7 +7,7 @@ import helpers as hp
 CMD_DELETE = "kubectl delete deployment -n ospl-daemon --all"
 
 def main(opts):
-
+    hp.acknowledge_deletion()
     output = hp.run_cmd(CMD_DELETE)
     print(output)
 

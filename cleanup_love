@@ -8,6 +8,8 @@ APIS = ["deployment", "job", "hpa"]
 CMD_DELETE_ALL = "kubectl delete {api} -n love --all"
 
 def main(opts):
+    hp.acknowledge_deletion()
+
     if opts.db or opts.all:
         APIS.append("statefulset")
 

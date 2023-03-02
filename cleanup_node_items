@@ -9,6 +9,7 @@ POD_DELIMITER = "-"
 
 
 def main(opts):
+    hp.acknowledge_deletion()
     namespaces = hp.STANDARD_NAMESPACES
     if not opts.clean_daemons:
         del namespaces[namespaces.index("ospl-daemon")]
