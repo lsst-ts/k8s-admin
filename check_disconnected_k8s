@@ -1,0 +1,173 @@
+#!/usr/bin/env python3
+
+import argparse
+import csv
+import itertools
+import os
+import subprocess
+
+
+def main(opts):
+    daemon_dict = {}
+    with open(opts.systemid_file) as ifile:
+        reader = csv.reader(ifile)
+        for row in reader:
+            daemon_dict[int(row[1])] = row[0]
+
+    if opts.node_daemon is None:
+        # Get the main daemon pod
+        cmd = "kubectl get pods -n ospl-daemon -l app.kubernetes.io/instance=ospl-main-daemon -o name".split()
+        proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        daemon_pod = proc.stdout.decode().strip().split("/")[-1]
+        container_name = "ospl-main-daemon"
+    else:
+        daemon_pod = opts.node_daemon
+        container_name = "ospl-daemon"
+
+    cmd = f"kubectl exec -n ospl-daemon -c {container_name} {daemon_pod}".split()
+    cmd.extend("-- grep Incoming durability.log".split())
+
+    # print(cmd)
+    proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
+    connections = {}
+    for machine in daemon_dict.values():
+        connections[machine] = {"connects": [], "disconnects": []}
+    # print(proc.returncode)
+    # print("B:", proc.stdout.decode().split(os.linesep))
+    system_ids = []
+    for line in proc.stdout.decode().split(os.linesep):
+        parts = line.split()
+        if not len(parts):
+            continue
+        # print(parts)
+        system_id = int(parts[10].strip("'").strip(",").strip("'"))
+        state = int(parts[13].strip("'").strip(",").strip("'"))
+        timestamp = parts[0].strip("'").strip(",").strip("'")
+        # print(system_id, state)
+        if state == 1:
+            system_ids.append(system_id)
+            if system_id in daemon_dict:
+                connections[daemon_dict[system_id]]["connects"].append(timestamp)
+        if state == 2564:
+            try:
+                system_ids.remove(system_id)
+                if system_id in daemon_dict:
+                    # print(f"{system_id} disconncted")
+                    connections[daemon_dict[system_id]]["disconnects"].append(timestamp)
+            except ValueError:
+                print(f"System Id: {system_id} was not present in original list.")
+
+    print(f"Total System Ids: {len(system_ids)}")
+
+    num_verified = 0
+    for key in daemon_dict:
+        machine = daemon_dict.get(key)
+        if machine.startswith("#"):
+            continue
+        if key not in system_ids:
+            print(f"{machine} is not in SystemId list.")
+        else:
+            num_verified += 1
+            if opts.show_known:
+                print(f"{machine} is in SystemId list.")
+    difference = len(system_ids) - num_verified
+    if difference:
+        print(f"Number of unknown SystemIds: {difference}")
+        if opts.find_unknowns:
+            unknown_ids = set(system_ids).difference(set(list(daemon_dict.keys())))
+            # print(f"Ids: {unknown_ids}")
+            hex_codes = [f"{x:x}" for x in unknown_ids]
+            # print(hex_codes)
+            if opts.file is None:
+                cmd = f"kubectl exec -n ospl-daemon -c {container_name} {daemon_pod}".split()
+                cmd.extend(["--", "grep", "SPDP ST0", "ddsi2.log"])
+            else:
+                cmd = [
+                    "grep",
+                    "SPDP ST0",
+                    opts.file,
+                ]
+            output = subprocess.check_output(cmd)
+            output = output.decode().split(os.linesep)
+            for line in output:
+                values = line.split()
+                # print(values)
+                if not len(values):
+                    continue
+                code = values[4].split(":")[0]
+                create_code = values[6]
+                # print(code)
+                if code in hex_codes and create_code == "3c3f":
+                    v1 = values[11]
+                    v2 = values[14]
+                    machine_name, ospl_version, *_ = v1.split("/")
+                    machine_ip = v2.split(":")[0]
+                    index = hex_codes.index(code)
+                    host_name = machine_name.split(".")[0]
+                    machine_system_id = list(unknown_ids)[index]
+                    print(
+                        f"{host_name} daemon ID is {machine_system_id} ({code}) "
+                        f"[{machine_ip}, {ospl_version}]"
+                    )
+
+    # print(connections)
+    if opts.show_disconnects:
+        for machine, connect_info in connections.items():
+            if (
+                len(connect_info["connects"]) > 1
+                and len(connect_info["disconnects"]) > 0
+            ):
+                if not opts.show_old:
+                    if machine.startswith("#"):
+                        continue
+                print(f"{machine}")
+                for c, d in itertools.zip_longest(
+                    connect_info["connects"], connect_info["disconnects"]
+                ):
+                    print(f"{c}   {d}")
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-f", "--file", dest="file", help="Use a file instead of a docker container"
+    )
+    parser.add_argument(
+        "-s",
+        "--systemid-file",
+        default="daemon_list.csv",
+        help="Use an alternate file for the SystemIds",
+    )
+    parser.add_argument(
+        "-d",
+        "--show-disconnects",
+        action="store_true",
+        help="Show the disconnect events.",
+    )
+    parser.add_argument(
+        "-u",
+        "--find-unknowns",
+        dest="find_unknowns",
+        action="store_true",
+        help="Find info about the unknown SystemIds.",
+    )
+    parser.add_argument(
+        "--show-old", action="store_true", help="Show Ids with leading #."
+    )
+    parser.add_argument(
+        "-c",
+        "--combined-logs",
+        action="store_true",
+        help="Look at a combined docker log.",
+    )
+    parser.add_argument(
+        "-k",
+        "--show-known",
+        action="store_true",
+        help="Show the list of known (watched) SystemIds.",
+    )
+    parser.add_argument("--node-daemon", help="Provide the pod for a node-daemon.")
+
+    args = parser.parse_args()
+    main(args)

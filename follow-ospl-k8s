@@ -1,0 +1,5 @@
+#!/bin/bash
+log_dir="/home/saluser"
+container="-c ospl-main-daemon"
+main_daemon_pod=$(kubectl get pods -n ospl-daemon -l app.kubernetes.io/instance=ospl-main-daemon -o name | cut -d / -f 2)
+kubectl exec -n ospl-daemon ${container} ${main_daemon_pod} -- tail -n 50 durability.log -f
