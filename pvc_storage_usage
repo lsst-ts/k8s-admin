@@ -1,0 +1,83 @@
+#!/usr/bin/env python3
+import argparse
+import collections
+import json
+
+import helpers as hp
+
+
+def show_pod_storage_use(pvc_namespace: str, pvc_names: list[str]) -> None:
+    # print(pvc_namespace, pvc_names)
+    # print(pvc_namespace)
+
+    cmd = f"kubectl get pods -n {pvc_namespace} -o json"
+    output = hp.run_cmd(cmd)
+    pod_info = json.loads(output)
+    pvc_volume_mounts = collections.defaultdict(list)
+
+    for pod in pod_info["items"]:
+        pod_name = pod["metadata"]["name"]
+        try:
+            volumes = pod["spec"]["volumes"]
+            for volume in volumes:
+                if "persistentVolumeClaim" in volume:
+                    pvc_name = volume["persistentVolumeClaim"]["claimName"]
+                    if pvc_name in pvc_names:
+                        containers = pod["spec"]["containers"]
+                        for container in containers:
+                            for volume_mount in container["volumeMounts"]:
+                                status = pod["status"]["phase"]
+                                if (
+                                    volume["name"] == volume_mount["name"]
+                                    and status == "Running"
+                                ):
+                                    pvc_volume_mounts[pvc_name].append(
+                                        (
+                                            pod_name,
+                                            container["name"],
+                                            volume_mount["mountPath"],
+                                        )
+                                    )
+        except KeyError:
+            # No volumes, move on
+            continue
+
+    if len(list(pvc_volume_mounts.keys())):
+        for pvc_name, pods in pvc_volume_mounts.items():
+            pod = pods[0]
+            pod_name = pod[0]
+            container = pod[1]
+            directory = pod[2]
+            cmd1 = f"kubectl exec -n {pvc_namespace} {pod_name} -c {container}"
+            cmd2 = f"df -h {directory}"
+            cmd = " -- ".join([cmd1, cmd2])
+            # print(cmd)
+            output = hp.run_cmd(cmd, as_lines=True)
+            parts = output[1].strip().split()
+            print(f"{pvc_name}: {parts[1]}\t{parts[4]}")
+    else:
+        print(f"No running pods are available for namespace {pvc_namespace}.")
+
+
+def main(opts: argparse.Namespace) -> None:
+    cmd = "kubectl get pvc -A -o json"
+    output = hp.run_cmd(cmd)
+    pvc_info = json.loads(output)
+    namespace_pvcs = collections.defaultdict(list)
+    for pvc in pvc_info["items"]:
+        if pvc["kind"] != "PersistentVolumeClaim":
+            continue
+        if pvc["spec"]["storageClassName"] == "":
+            continue
+        metadata = pvc["metadata"]
+        namespace_pvcs[metadata["namespace"]].append(metadata["name"])
+
+    for namespace, pvc_names in namespace_pvcs.items():
+        show_pod_storage_use(namespace, pvc_names)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+
+    args = parser.parse_args()
+    main(args)
