@@ -60,6 +60,9 @@ def show_pod_storage_use(pvc_namespace: str, pvc_names: list[str]) -> None:
 
 
 def main(opts: argparse.Namespace) -> None:
+    output = hp.run_cmd(hp.GET_KUBECTL_CONTEXT)
+    print(f"{output} PVC Usage")
+
     cmd = "kubectl get pvc -A -o json"
     output = hp.run_cmd(cmd)
     pvc_info = json.loads(output)
