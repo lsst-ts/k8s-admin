@@ -63,15 +63,25 @@ def main(opts: argparse.Namespace) -> None:
     output = hp.run_cmd(hp.GET_KUBECTL_CONTEXT)
     print(f"{output} PVC Usage")
 
-    cmd = "kubectl get pvc -A -o json"
+    if output == "usdf-rsp":
+        ns = "-n sasquatch"
+    else:
+        ns = "-A"
+
+    cmd = f"kubectl get pvc {ns} -o json"
     output = hp.run_cmd(cmd)
     pvc_info = json.loads(output)
     namespace_pvcs = collections.defaultdict(list)
     for pvc in pvc_info["items"]:
+        print(pvc)
         if pvc["kind"] != "PersistentVolumeClaim":
             continue
-        if pvc["spec"]["storageClassName"] == "":
-            continue
+        try:
+            if pvc["spec"]["storageClassName"] == "":
+                continue
+        except KeyError:
+            # USDF doesn't provide storage class names, so just move on
+            pass
         metadata = pvc["metadata"]
         namespace_pvcs[metadata["namespace"]].append(metadata["name"])
 
