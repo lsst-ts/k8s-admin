@@ -1,0 +1,103 @@
+#!/usr/bin/env python3
+import argparse
+from datetime import datetime, timedelta
+import os
+
+import yaml
+
+import helpers as hp
+
+DESCRIBE_CMD = "kubectl get {api} -n uws -l type=uws-job -oyaml"
+DELETE_JOB_CMD = "kubectl delete job -n uws {job}"
+FAILED_JOB_CUTOFF = timedelta(days=15)
+COMPLETED_JOB_CUTOFF = timedelta(days=5)
+
+
+def main(opts: argparse.Namespace) -> None:
+    hp.acknowledge_deletion()
+
+    now = datetime.utcnow()
+    failed_cutoff = now - FAILED_JOB_CUTOFF
+    completed_cutoff = now - COMPLETED_JOB_CUTOFF
+    jobs_to_delete = []
+
+    if opts.jobs_only:
+        api_kind = "Job"
+        phases = ("Failed", "Complete")
+    else:
+        api_kind = "Pod"
+        phases = ("Failed", "Succeeded")
+
+    output = hp.run_cmd(DESCRIBE_CMD.format(api=api_kind.lower()), as_lines=True)
+    yaml_output = yaml.safe_load(os.linesep.join(output))
+    count = 0
+    for item in yaml_output["items"]:
+        if item["kind"] != api_kind:
+            continue
+        count += 1
+        job_name = item["metadata"]["labels"]["job-name"]
+        if not opts.jobs_only:
+            phase = item["status"]["phase"]
+            status = item["status"]["containerStatuses"]
+            try:
+                state = status[0]["state"]["terminated"]
+            except KeyError:
+                # This is a running job, so skip
+                continue
+            completion_time = datetime.fromisoformat(state["finishedAt"].strip("Z"))
+        else:
+            status = item["status"]
+            try:
+                conditions = status["conditions"][0]
+            except KeyError:
+                # This is a running job, so skip
+                continue
+            phase = conditions["type"]
+            if phase == phases[0]:
+                ctime = conditions["lastTransitionTime"]
+            if phase == phases[1]:
+                ctime = status["completionTime"]
+            completion_time = datetime.fromisoformat(ctime.strip("Z"))
+        is_failed = False
+        if phase == phases[0]:
+            if completion_time < failed_cutoff:
+                jobs_to_delete.append(job_name)
+                is_failed = True
+        if phase == phases[1]:
+            if completion_time < completed_cutoff:
+                jobs_to_delete.append(job_name)
+
+        if is_failed:
+            separator = "\t\t"
+        else:
+            separator = "\t"
+        if opts.verbose:
+            print(f"{job_name}\t{phase}{separator}{completion_time}")
+
+    print(f"Total jobs: {count}")
+    print(f"Jobs to delete: {len(jobs_to_delete)}")
+
+    if not opts.check_only:
+        for job in jobs_to_delete:
+            cmd = DELETE_JOB_CMD.format(job=job)
+            output1 = hp.run_cmd(cmd)
+            print(output1)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument(
+        "-v", "--verbose", action="store_true", help="Show print statements."
+    )
+    parser.add_argument(
+        "--check-only",
+        action="store_true",
+        help="Provide counts only, no job deletion.",
+    )
+    parser.add_argument(
+        "--jobs-only", action="store_true", help="Handle jobs that no longer have pods."
+    )
+
+    args = parser.parse_args()
+    main(args)
