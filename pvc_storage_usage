@@ -6,7 +6,7 @@ import json
 import helpers as hp
 
 
-def show_pod_storage_use(pvc_namespace: str, pvc_names: list[str]) -> None:
+def show_pod_storage_use(pvc_namespace: str, pvc_names: list[str]) -> float:
     # print(pvc_namespace, pvc_names)
     # print(pvc_namespace)
 
@@ -14,6 +14,7 @@ def show_pod_storage_use(pvc_namespace: str, pvc_names: list[str]) -> None:
     output = hp.run_cmd(cmd)
     pod_info = json.loads(output)
     pvc_volume_mounts = collections.defaultdict(list)
+    total_space = 0.0
 
     for pod in pod_info["items"]:
         pod_name = pod["metadata"]["name"]
@@ -54,10 +55,18 @@ def show_pod_storage_use(pvc_namespace: str, pvc_names: list[str]) -> None:
             # print(cmd)
             output = hp.run_cmd(cmd, as_lines=True)
             parts = output[1].strip().split()
-            print(f"{pvc_name}: {parts[1]}\t{parts[4]}")
+            print(f"{pvc_name}: {parts[1]}\t{parts[2]}\t{parts[4]}")
+            space = float(parts[2][:-1])
+            size = parts[2][-1]
+            if size == "M":
+                space /= 10**6
+            if size == "G":
+                space /= 10**3
+            total_space += space
     else:
         print(f"No running pods are available for namespace {pvc_namespace}.")
 
+    return total_space
 
 def main(opts: argparse.Namespace) -> None:
     output = hp.run_cmd(hp.GET_KUBECTL_CONTEXT)
@@ -73,7 +82,7 @@ def main(opts: argparse.Namespace) -> None:
     pvc_info = json.loads(output)
     namespace_pvcs = collections.defaultdict(list)
     for pvc in pvc_info["items"]:
-        print(pvc)
+        # print(pvc)
         if pvc["kind"] != "PersistentVolumeClaim":
             continue
         try:
@@ -85,8 +94,11 @@ def main(opts: argparse.Namespace) -> None:
         metadata = pvc["metadata"]
         namespace_pvcs[metadata["namespace"]].append(metadata["name"])
 
+    used_space = 0.0
     for namespace, pvc_names in namespace_pvcs.items():
-        show_pod_storage_use(namespace, pvc_names)
+        space = show_pod_storage_use(namespace, pvc_names)
+        used_space += space
+    print(f"Total used: {used_space:.4f}T")
 
 
 if __name__ == "__main__":
