@@ -1,0 +1,42 @@
+#!/usr/bin/env python3
+
+import argparse
+
+import helpers as hp
+
+CMD_DELETE = "kubectl delete {api} -n {namespace} "
+
+
+def main(opts):
+    hp.acknowledge_deletion()
+
+    namespaces = hp.KAFKA_STANDARD_NAMESPACES
+
+    for namespace in namespaces:
+        command = CMD_DELETE.format(
+            api=hp.API_MAPPING[namespace], namespace=namespace
+        )
+        if namespace == "uws":
+            command = command.split()
+            command.append("-l")
+            command.append("csc-class=ocps")
+        else:
+            command += "--all"
+        if opts.no_run:
+            print(command)
+        else:
+            output = hp.run_cmd(command)
+            print(output)
+
+
+if __name__ == "__main__":
+    description = ["This program cleans up all deployed systems."]
+    parser = argparse.ArgumentParser(
+        description=" ".join(description),
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+
+    parser.add_argument("--no-run", action="store_true", help="Do not run script, just print commands.")
+
+    args = parser.parse_args()
+    main(args)
