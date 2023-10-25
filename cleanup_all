@@ -10,7 +10,10 @@ CMD_DELETE = "kubectl delete {api} -n {namespace} "
 def main(opts):
     hp.acknowledge_deletion()
 
-    namespaces = hp.STANDARD_NAMESPACES
+    if not opts.no_cscs:
+        namespaces = hp.STANDARD_NAMESPACES
+    else:
+        namespaces = ["kafka-producers", "ospl-daemon"]
     if not opts.clean_daemons:
         del namespaces[namespaces.index("ospl-daemon")]
     if opts.no_kp:
@@ -51,6 +54,8 @@ if __name__ == "__main__":
     parser.add_argument("--no-run", action="store_true", help="Do not run script, just print commands.")
 
     parser.add_argument("--no-kp", action="store_true", help="Don't shutdown the kafka producers.")
+
+    parser.add_argument("--no-cscs", action="store_true", help="Don't shutdown CSC namespaces.")
 
     args = parser.parse_args()
     main(args)
