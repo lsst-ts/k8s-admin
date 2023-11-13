@@ -20,6 +20,7 @@ STANDARD_NAMESPACES = [
     "eas",
     "love",
     "maintel",
+    "simonyitel",
     "uws",
     "obssys",
     "dds-test",
