@@ -18,6 +18,7 @@ STANDARD_NAMESPACES = [
     "auxtel",
     "calsys",
     "eas",
+    "love",
     "maintel",
     "uws",
     "obssys",
