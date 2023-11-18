@@ -58,6 +58,8 @@ def show_pod_storage_use(pvc_namespace: str, pvc_names: list[str]) -> float:
             print(f"{pvc_name}: {parts[1]}\t{parts[2]}\t{parts[4]}")
             space = float(parts[2][:-1])
             size = parts[2][-1]
+            if size == "K":
+                space /= 10**9
             if size == "M":
                 space /= 10**6
             if size == "G":
