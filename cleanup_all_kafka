@@ -10,14 +10,7 @@ CMD_DELETE = "kubectl delete {api} -n {namespace} "
 def main(opts):
     hp.acknowledge_deletion()
 
-    if not opts.no_cscs:
-        namespaces = hp.STANDARD_NAMESPACES
-    else:
-        namespaces = ["kafka-producers", "ospl-daemon"]
-    if not opts.clean_daemons:
-        del namespaces[namespaces.index("ospl-daemon")]
-    if opts.no_kp:
-        del namespaces[namespaces.index("kafka-producers")]
+    namespaces = hp.KAFKA_STANDARD_NAMESPACES
 
     for namespace in namespaces:
         command = CMD_DELETE.format(
@@ -26,7 +19,7 @@ def main(opts):
         if namespace == "uws":
             command = command.split()
             command.append("-l")
-            command.append("csc in (atocps, ccocps)")
+            command.append("csc-class=ocps")
         else:
             command += "--all"
         if opts.no_run:
@@ -37,25 +30,13 @@ def main(opts):
 
 
 if __name__ == "__main__":
-    description = ["This program cleans up all deployed systems. The cleanup"]
-    description.append("of the OSPL daemons is optional.")
+    description = ["This program cleans up all deployed systems."]
     parser = argparse.ArgumentParser(
         description=" ".join(description),
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
 
-    parser.add_argument(
-        "-d",
-        "--clean-daemons",
-        dest="clean_daemons",
-        action="store_true",
-        help="Clean up the OSPL daemons.",
-    )
     parser.add_argument("--no-run", action="store_true", help="Do not run script, just print commands.")
-
-    parser.add_argument("--no-kp", action="store_true", help="Don't shutdown the kafka producers.")
-
-    parser.add_argument("--no-cscs", action="store_true", help="Don't shutdown CSC namespaces.")
 
     args = parser.parse_args()
     main(args)
