@@ -34,6 +34,15 @@ def main(opts):
                 # For the daemons we want the pod not the daemonset
                 # since we are only deleting the one on the node.
                 api = "pod"
+            elif namespace == "love":
+                if parts[1] == "commander":
+                    api = "job"
+                    app_name = POD_DELIMITER.join(parts[:-1])
+                elif parts[1] == "producer":
+                    api = "pod"
+                    app_name = POD_DELIMITER.join(parts)
+                else:
+                    continue
             else:
                 app_name = POD_DELIMITER.join(parts[:-1])
 
