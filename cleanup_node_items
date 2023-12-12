@@ -43,6 +43,11 @@ def main(opts):
                     app_name = POD_DELIMITER.join(parts)
                 else:
                     continue
+            elif namespace == "uws":
+                if parts[1] == "server":
+                    continue
+                else:
+                    app_name = POD_DELIMITER.join(parts[:-1])
             else:
                 app_name = POD_DELIMITER.join(parts[:-1])
 
