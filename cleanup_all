@@ -21,6 +21,8 @@ def main(opts):
 
     for namespace in namespaces:
         if namespace == "love":
+            if opts.no_love:
+                continue
             for api in hp.API_MAPPING[namespace]:
                 command = CMD_DELETE.format(
                     api=api, namespace=namespace
@@ -78,6 +80,8 @@ if __name__ == "__main__":
     parser.add_argument("--no-cscs", action="store_true", help="Don't shutdown CSC namespaces.")
 
     parser.add_argument("--love-dds-only", action="store_true", help="Delete on DDS related APIs for LOVE.")
+
+    parser.add_argument("--no-love", action="store_true", help="Don't shutdown LOVE systems.")
 
     args = parser.parse_args()
     main(args)
