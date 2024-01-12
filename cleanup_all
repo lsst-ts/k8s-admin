@@ -20,20 +20,42 @@ def main(opts):
         del namespaces[namespaces.index("kafka-producers")]
 
     for namespace in namespaces:
-        command = CMD_DELETE.format(
-            api=hp.API_MAPPING[namespace], namespace=namespace
-        )
-        if namespace == "uws":
-            command = command.split()
-            command.append("-l")
-            command.append("csc in (atocps, ccocps)")
+        if namespace == "love":
+            if opts.no_love:
+                continue
+            for api in hp.API_MAPPING[namespace]:
+                command = CMD_DELETE.format(
+                    api=api, namespace=namespace
+                )
+                if opts.love_dds_only:
+                    if api == "hpa":
+                        continue
+                    if api == "deployment":
+                        command += "-l app.kubernetes.io/name=love-producer"
+                    if api == "job":
+                        command += "-l csc=love-commander"
+                else:
+                    command += "--all"
+                if opts.no_run:
+                    print(command)
+                else:
+                    output = hp.run_cmd(command)
+                    print(output)
         else:
-            command += "--all"
-        if opts.no_run:
-            print(command)
-        else:
-            output = hp.run_cmd(command)
-            print(output)
+            command = CMD_DELETE.format(
+                api=hp.API_MAPPING[namespace], namespace=namespace
+            )
+            if namespace == "uws":
+                command = command.split()
+                command.append("-l")
+                command.append("csc in (atocps, ccocps)")
+            else:
+                command += "--all"
+            if opts.no_run:
+                print(command)
+            else:
+                output = hp.run_cmd(command)
+                print(output)
 
 
 if __name__ == "__main__":
@@ -56,6 +78,10 @@ if __name__ == "__main__":
     parser.add_argument("--no-kp", action="store_true", help="Don't shutdown the kafka producers.")
 
     parser.add_argument("--no-cscs", action="store_true", help="Don't shutdown CSC namespaces.")
+
+    parser.add_argument("--love-dds-only", action="store_true", help="Delete on DDS related APIs for LOVE.")
+
+    parser.add_argument("--no-love", action="store_true", help="Don't shutdown LOVE systems.")
 
     args = parser.parse_args()
     main(args)

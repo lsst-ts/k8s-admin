@@ -45,6 +45,7 @@ API_MAPPING = {
     "eas": "job",
     "auxtel": "job",
     "maintel": "job",
+    "love": ["deployment", "job", "hpa"],
     "simonyitel": "job",
     "uws": "job",
     "calsys": "job",
