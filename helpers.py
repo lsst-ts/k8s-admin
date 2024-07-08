@@ -17,6 +17,7 @@ __all__ = [
 STANDARD_NAMESPACES = [
     "auxtel",
     "calsys",
+    "calsys-lab",
     "eas",
     "love",
     "maintel",
@@ -49,6 +50,7 @@ API_MAPPING = {
     "simonyitel": "job",
     "uws": "job",
     "calsys": "job",
+    "calsys-lab": "job",
     "kafka-producers": "deployment",
     "ospl-daemon": "daemonset",
 }
