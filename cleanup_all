@@ -14,6 +14,11 @@ def main(opts):
         namespaces = hp.STANDARD_NAMESPACES
     else:
         namespaces = ["kafka-producers", "ospl-daemon"]
+        if opts.namespaces is not None:
+            ns_list = opts.namespaces.split(",")
+            for ns in ns_list:
+                namespaces.insert(0, ns)
+
     if not opts.clean_daemons:
         del namespaces[namespaces.index("ospl-daemon")]
     if opts.no_kp:
@@ -82,6 +87,11 @@ if __name__ == "__main__":
     parser.add_argument("--love-dds-only", action="store_true", help="Delete on DDS related APIs for LOVE.")
 
     parser.add_argument("--no-love", action="store_true", help="Don't shutdown LOVE systems.")
+
+    parser.add_argument(
+        "--namespaces",
+        help="Comma-delimited list of namespaces to clean up. Used in conjunction with --no-cscs option."
+    )
 
     args = parser.parse_args()
     main(args)

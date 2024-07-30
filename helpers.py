@@ -51,6 +51,7 @@ API_MAPPING = {
     "uws": "job",
     "calsys": "job",
     "calsys-lab": "job",
+    "lsstcam": "job",
     "kafka-producers": "deployment",
     "ospl-daemon": "daemonset",
 }
