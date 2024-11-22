@@ -18,6 +18,7 @@ STANDARD_NAMESPACES = [
     "auxtel",
     "calsys",
     "calsys-lab",
+    "control-system-test",
     "eas",
     "love",
     "maintel",
