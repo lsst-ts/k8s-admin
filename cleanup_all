@@ -53,7 +53,7 @@ def main(opts):
             if namespace == "uws":
                 command = command.split()
                 command.append("-l")
-                command.append("csc in (atocps, ccocps)")
+                command.append("csc in (atocps, ccocps, raocps)")
             else:
                 command += "--all"
             if opts.no_run:
