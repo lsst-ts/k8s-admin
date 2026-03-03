@@ -11,8 +11,6 @@ POD_DELIMITER = "-"
 def main(opts):
     hp.acknowledge_deletion()
     namespaces = hp.STANDARD_NAMESPACES
-    if not opts.clean_daemons:
-        del namespaces[namespaces.index("ospl-daemon")]
 
     for namespace in namespaces:
         command = hp.GET_PODS_CMD + f" -n {namespace}"
@@ -27,14 +25,7 @@ def main(opts):
                 continue
             parts = values[1].split(POD_DELIMITER)
             api = hp.API_MAPPING[namespace]
-            if namespace == "kafka-producers":
-                app_name = POD_DELIMITER.join(parts[:3])
-            elif namespace == "ospl-daemon":
-                app_name = POD_DELIMITER.join(parts)
-                # For the daemons we want the pod not the daemonset
-                # since we are only deleting the one on the node.
-                api = "pod"
-            elif namespace == "love":
+            if namespace == "love":
                 if parts[1] == "commander":
                     api = "job"
                     app_name = POD_DELIMITER.join(parts[:-1])
@@ -60,21 +51,12 @@ def main(opts):
 
 if __name__ == "__main__":
     description = ["This program cleans up all deployed systems on a given node."]
-    description.append("It does not clean up the OSPL daemon by default.")
     parser = argparse.ArgumentParser(
         description=" ".join(description),
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
 
     parser.add_argument("node_name", help="Name of the node to clean.")
-
-    parser.add_argument(
-        "-d",
-        "--clean-daemons",
-        dest="clean_daemons",
-        action="store_true",
-        help="Clean up the OSPL daemons.",
-    )
 
     args = parser.parse_args()
     main(args)
