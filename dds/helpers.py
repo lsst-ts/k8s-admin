@@ -8,6 +8,7 @@ __all__ = [
     "GET_KUBECTL_CONTEXT",
     "GET_PODS_CMD",
     "GET_PODS_NAME_CMD",
+    "KAFKA_STANDARD_NAMESPACES"
     "run_cmd",
     "STANDARD_NAMESPACES",
 ]
@@ -16,23 +17,47 @@ __all__ = [
 STANDARD_NAMESPACES = [
     "auxtel",
     "calsys",
+    "calsys-lab",
     "control-system-test",
+    "eas",
     "envsys",
     "love",
-    "obssys",
+    "maintel",
     "simonyitel",
     "uws",
+    "obssys",
+    "dds-test",
+    "kafka-producers",
+    "ospl-daemon",
+]
+
+KAFKA_STANDARD_NAMESPACES = [
+    "auxtel",
+    "calsys",
+    "eas",
+    "envsys",
+    "simonyitel",
+    "uws",
+    "obssys",
+    "control-system-test",
 ]
 
 API_MAPPING = {
-    "auxtel": "job",
-    "calsys": "job",
-    "control-system-test": "job",
-    "envsys": "job",
-    "love": ["deployment", "job", "hpa"],
     "obssys": "job",
+    "dds-test": "job",
+    "control-system-test": "job",
+    "eas": "job",
+    "envsys": "job",
+    "auxtel": "job",
+    "maintel": "job",
+    "love": ["deployment", "job", "hpa"],
     "simonyitel": "job",
     "uws": "job",
+    "calsys": "job",
+    "calsys-lab": "job",
+    "lsstcam": "job",
+    "kafka-producers": "deployment",
+    "ospl-daemon": "daemonset",
 }
 
 GET_PODS_CMD = (

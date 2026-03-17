@@ -7,8 +7,10 @@ import helpers as hp
 
 def main(opts):
     namespaces = hp.STANDARD_NAMESPACES
+    if not opts.all:
+        del namespaces[namespaces.index("ospl-daemon")]
     if opts.all:
-        namespaces.append("rapid-analysis")
+        namespaces.append("rubintv-broadcasters")
         namespaces.append("schedview")
 
     for namespace in namespaces:
