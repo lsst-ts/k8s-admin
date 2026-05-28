@@ -29,7 +29,7 @@ API_MAPPING = {
     "calsys": "job",
     "control-system-test": "job",
     "envsys": "job",
-    "love": ["deployment", "job", "hpa"],
+    "love": ["deployment", "job", "hpa", "svc"],
     "obssys": "job",
     "simonyitel": "job",
     "uws": "job",
