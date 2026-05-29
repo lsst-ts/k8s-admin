@@ -1,0 +1,41 @@
+#!/usr/bin/env python3
+
+import argparse
+
+import helpers as hp
+
+def main(opts):
+    hp.acknowledge_deletion()
+
+    if opts.love_producers_only:
+        command = hp.CMD_DELETE.format(
+            resource="deployment",
+            name="-l app.kubernetes.io/name=love-producer",
+            namespace="love")
+        if opts.no_run:
+            print(command)
+        else:
+            output = hp.run_cmd(command)
+            print(output)
+    else:
+        for api in hp.API_MAPPING["love"]:
+            command = hp.CMD_DELETE.format(resource=api,name='--all', namespace="love")
+            if opts.no_run:
+                print(command)
+            else:
+                output = hp.run_cmd(command)
+                print(output)
+
+
+if __name__ == "__main__":
+    description = ["This program cleans up love namespace resources."]
+    parser = argparse.ArgumentParser(
+        description=" ".join(description),
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+
+    parser.add_argument("--no-run", action="store_true", help="Do not run script, just print commands.")
+    parser.add_argument("--love-producers-only", action="store_true", help="Only delete love producers.")
+
+    args = parser.parse_args()
+    main(args)

@@ -10,6 +10,10 @@ __all__ = [
     "GET_PODS_NAME_CMD",
     "run_cmd",
     "STANDARD_NAMESPACES",
+    "CMD_ANNOTATE",
+    "CMD_DELETE",
+    "CMD_SCALE",
+    "CMD_WAIT"
 ]
 
 
@@ -29,7 +33,7 @@ API_MAPPING = {
     "calsys": "job",
     "control-system-test": "job",
     "envsys": "job",
-    "love": ["deployment", "job", "hpa"],
+    "love": ["deployment", "job", "hpa", "svc"],
     "obssys": "job",
     "simonyitel": "job",
     "uws": "job",
@@ -43,8 +47,15 @@ GET_PODS_NAME_CMD = "kubectl get pod -o=custom-columns=NAME:.metadata.name"
 
 GET_KUBECTL_CONTEXT = "kubectl config current-context"
 
+CMD_DELETE = "kubectl delete {resource} {name} -n {namespace} "
 
-def run_cmd(command, as_lines=False):
+CMD_SCALE = "kubectl scale deployment {name} {selector} --replicas={replicas} -n {namespace}"
+
+CMD_ANNOTATE = "kubectl annotate --overwrite {kind} {name} {annotation} -n {namespace}"
+
+CMD_WAIT = "kubectl wait --for=condition=Ready pod {selector} --timeout={timeout} -n {namespace}"
+
+def run_cmd(command, as_lines=False, check=False):
     """Run a command via subprocess::run.
 
     Parameters
@@ -53,6 +64,8 @@ def run_cmd(command, as_lines=False):
         The command to run. Should be space separated.
     as_lines : bool, optional
         Return the output as a list instead of a string.
+    check : bool, optional
+        Check the return code and exit if it fails.
 
     Returns
     -------
@@ -65,6 +78,9 @@ def run_cmd(command, as_lines=False):
         cmd = command
     output = sp.run(cmd, stdout=sp.PIPE, stderr=sp.STDOUT)
     decoded_output = output.stdout.decode("utf-8")
+    if check and output.returncode != 0:
+        print(decoded_output)
+        sys.exit(output.returncode)
     if as_lines:
         return decoded_output.split(os.linesep)
     else:

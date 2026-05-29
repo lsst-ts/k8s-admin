@@ -1,0 +1,37 @@
+#!/usr/bin/env python3
+
+import argparse
+
+import helpers as hp
+
+
+def main(opts):
+    hp.acknowledge_deletion()
+    namespace = "sasquatch"
+    commands = [
+        hp.CMD_SCALE.format(name="sasquatch-schema-registry", selector="", replicas="0", namespace=namespace),
+        hp.CMD_SCALE.format(name="", selector="--selector app.kubernetes.io/name=sasquatch-telegraf", replicas="0", namespace=namespace),
+        hp.CMD_ANNOTATE.format(kind="Kafka", name="sasquatch", annotation="strimzi.io/pause-reconciliation=\"true\"", namespace=namespace),
+        hp.CMD_DELETE.format(resource="StrimziPodSet", name="sasquatch-kafka-local-storage", namespace=namespace),
+        hp.CMD_DELETE.format(resource="StrimziPodSet", name="sasquatch-controller", namespace=namespace),
+    ]
+
+    if opts.no_run:
+        for command in commands:
+            print(command)
+    else:
+        for command in commands:
+            output = hp.run_cmd(command)
+            print(output)
+
+if __name__ == "__main__":
+    description = ["This program shuts down Kafka gracefully."]
+    parser = argparse.ArgumentParser(
+        description=" ".join(description),
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+
+    parser.add_argument("--no-run", action="store_true", help="Do not run script, just print commands.")
+
+    args = parser.parse_args()
+    main(args)
