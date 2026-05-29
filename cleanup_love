@@ -4,15 +4,14 @@ import argparse
 
 import helpers as hp
 
-CMD_DELETE = "kubectl delete {api} -n {namespace} "
-
-
 def main(opts):
     hp.acknowledge_deletion()
 
     if opts.love_producers_only:
-        command = CMD_DELETE.format(api="deployment", namespace="love")
-        command += "-l app.kubernetes.io/name=love-producer"
+        command = hp.CMD_DELETE.format(
+            resource="deployment",
+            name="-l app.kubernetes.io/name=love-producer",
+            namespace="love")
         if opts.no_run:
             print(command)
         else:
@@ -20,8 +19,7 @@ def main(opts):
             print(output)
     else:
         for api in hp.API_MAPPING["love"]:
-            command = CMD_DELETE.format(api=api, namespace="love")
-            command += "--all"
+            command = hp.CMD_DELETE.format(resource=api,name='--all', namespace="love")
             if opts.no_run:
                 print(command)
             else:

@@ -4,25 +4,23 @@ import argparse
 
 import helpers as hp
 
-CMD_DELETE = "kubectl delete {resource} {name} -n {namespace} "
-CMD_SCALE_DOWN = "kubectl scale deployment {name} {selector} --replicas=0 -n {namespace}"
-CMD_ANNOTATE = "kubectl annotate --overwrite {kind} {name} {annotation} -n {namespace}"
 
 def main(opts):
     hp.acknowledge_deletion()
     namespace = "sasquatch"
     commands = [
-        CMD_SCALE_DOWN.format(name="sasquatch-schema-registry", selector="", namespace=namespace),
-        CMD_SCALE_DOWN.format(name="", selector="--selector app.kubernetes.io/name=sasquatch-telegraf", namespace=namespace),
-        CMD_ANNOTATE.format(kind="Kafka", name="sasquatch", annotation="strimzi.io/pause-reconciliation=\"true\"", namespace=namespace),
-        CMD_DELETE.format(resource="StrimziPodSet", name="sasquatch-kafka-local-storage", namespace=namespace),
-        CMD_DELETE.format(resource="StrimziPodSet", name="sasquatch-controller", namespace=namespace),
+        hp.CMD_SCALE.format(name="sasquatch-schema-registry", selector="", replicas="0", namespace=namespace),
+        hp.CMD_SCALE.format(name="", selector="--selector app.kubernetes.io/name=sasquatch-telegraf", replicas="0", namespace=namespace),
+        hp.CMD_ANNOTATE.format(kind="Kafka", name="sasquatch", annotation="strimzi.io/pause-reconciliation=\"true\"", namespace=namespace),
+        hp.CMD_DELETE.format(resource="StrimziPodSet", name="sasquatch-kafka-local-storage", namespace=namespace),
+        hp.CMD_DELETE.format(resource="StrimziPodSet", name="sasquatch-controller", namespace=namespace),
     ]
 
-    for command in commands:
-        if opts.no_run:
+    if opts.no_run:
+        for command in commands:
             print(command)
-        else:
+    else:
+        for command in commands:
             output = hp.run_cmd(command)
             print(output)
 
